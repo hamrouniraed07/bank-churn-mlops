@@ -61,15 +61,6 @@ async def load_model():
 # -------------------------------------------------
 # Endpoints généraux
 # -------------------------------------------------
-@app.get("/")
-def root():
-    return {
-        "message": "Bank Churn Prediction API",
-        "version": "1.0.0",
-        "status": "running",
-        "docs": "/docs"
-    }
-
 @app.get("/health", response_model=HealthResponse)
 def health():
     if model is None:
@@ -125,50 +116,6 @@ def predict(features: CustomerFeatures):
         raise HTTPException(status_code=500, detail=str(e))
 
 # -------------------------------------------------
-# Batch Prediction
-# -------------------------------------------------
-@app.post("/predict/batch")
-def predict_batch(features_list: List[CustomerFeatures]):
-    if model is None:
-        raise HTTPException(status_code=503, detail="Modèle indisponible")
-
-    try:
-        predictions = []
-
-        for features in features_list:
-            X = np.array([[ 
-                features.CreditScore,
-                features.Age,
-                features.Tenure,
-                features.Balance,
-                features.NumOfProducts,
-                features.HasCrCard,
-                features.IsActiveMember,
-                features.EstimatedSalary,
-                features.Geography_Germany,
-                features.Geography_Spain
-            ]])
-
-            proba = float(model.predict_proba(X)[0][1])
-            prediction = int(proba > 0.5)
-
-            predictions.append({
-                "churn_probability": round(proba, 4),
-                "prediction": prediction
-            })
-
-        logger.info(f"Batch prediction complété : {len(predictions)} échantillons")
-
-        return {
-            "predictions": predictions,
-            "count": len(predictions)
-        }
-
-    except Exception as e:
-        logger.error(f"Erreur batch prediction : {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-# -------------------------------------------------
 # Drift Detection (API)
 # -------------------------------------------------
 @app.post("/drift/check", tags=["Monitoring"])
@@ -180,8 +127,8 @@ def check_drift(threshold: float = 0.05):
             threshold=threshold
         )
 
-        drifted = [f for f, r in results.items() if r.get("drift_detected")]
-        drift_pct = len(drifted) / len(results) * 100 if results else 0
+        drifted = [f for f, r in results.items() if r["drift_detected"]]
+        drift_pct = len(drifted) / len(results) * 100
 
         logger.info(
             "drift_detection",
@@ -206,3 +153,7 @@ def check_drift(threshold: float = 0.05):
         tb = traceback.format_exc()
         logger.error(tb)
         raise HTTPException(status_code=500, detail="Erreur drift detection")
+    
+@app.get("/")
+def read_root():
+    return {"message": "Bank Churn Prediction API"}    

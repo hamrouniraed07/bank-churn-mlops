@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from pydantic import ConfigDict
 
 
 # ============================================================
@@ -31,3 +32,8 @@ class HealthResponse(BaseModel):
     """Model for health check response"""
     status: str
     model_loaded: bool
+    
+class HealthResponse(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+    status: str
+    model_loaded: bool    
