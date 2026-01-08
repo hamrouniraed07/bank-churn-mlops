@@ -125,6 +125,7 @@ def predict(payload: Dict[str, Any] = Body(...)):
 
 @app.post("/drift/check", tags=["Monitoring"])
 def check_drift(threshold: float = 0.05):
+    from app.drift_detect import detect_drift
     try:
         results = detect_drift(
             reference_file="data/bank_churn.csv",
