@@ -67,6 +67,9 @@ def health():
         raise HTTPException(status_code=503, detail="Modèle non chargé")
     return {"status": "healthy", "model_loaded": True}
 
+@app.get("/")
+def read_root():
+    return {"message": "Bank Churn Prediction API"}
 # -------------------------------------------------
 # Prédiction
 # -------------------------------------------------
@@ -154,6 +157,4 @@ def check_drift(threshold: float = 0.05):
         logger.error(tb)
         raise HTTPException(status_code=500, detail="Erreur drift detection")
     
-@app.get("/")
-def read_root():
-    return {"message": "Bank Churn Prediction API"}    
+ 
